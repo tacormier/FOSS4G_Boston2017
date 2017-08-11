@@ -23,6 +23,9 @@ install.packages("rgeos") # interfact to GEOS (Geometry Engine - Open Source)
 install.packages("dplyr") # A fast tool for working with data frame like objects
 install.packages("sp")  # working with spatial objects (this package will be installed with raster, but wanted to explicitly recognize it as important)
 install.packages("leaflet")  # interactive web mapping using Leaflet - we won't use this today, but web mappers may want to play with it!
+install.packages("rmarkdown") # convert to and from rmarkdown files
+install.packages("knitr") # a tool for dynamic report generation in R
+
 #################################
 p2 <- proc.time()
 p2-p1
