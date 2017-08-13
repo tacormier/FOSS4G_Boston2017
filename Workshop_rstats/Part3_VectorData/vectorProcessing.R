@@ -16,7 +16,7 @@ library(rlist) # a set of functions for working with lists
 library(dplyr) # A fast set of tools for working with data frame like objects
 # library(plotly) # a graphing package for interactive plots
 library(tmap) # layer-based approach to building thematic maps
-# library(maptools) # provides various mapping functions, BUT I don't recommend using it to read/write files bc it drops projection information.
+library(gganimate) # create animated ggplot2 plots
 ######################################
 wd <- "/home/user/R_workshop/data/"
 setwd(wd)
@@ -48,6 +48,16 @@ m <- qtm(shp = birds.sp, symbols.col="COMMON.NAME", symbols.size=0.15,
     title="Species Observations\n2014 - 2017", symbols.title.col="Common Name") +
   tm_compass() + tm_scale_bar()
 m
+
+# a map by date?
+p <- ggplot(birds.sp@data, aes(x=LONGITUDE, y=LATITUDE)) + geom_point()
+p
+# add some color and frame by year
+p <- ggplot(birds.sp@data, aes(x=LONGITUDE, y=LATITUDE, color=COMMON.NAME, frame=year)) + geom_point()
+p
+
+gganimate(p) # cool!
+gganimate(p, "birds_byYear.gif")
 
 # 4. Bring in county layer
 county <- shapefile("boundaries/USA_adm2_conus_albers.shp")
