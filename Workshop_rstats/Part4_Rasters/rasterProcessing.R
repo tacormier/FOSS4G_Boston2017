@@ -10,7 +10,8 @@ library(rasterVis) # visualization of raster data
 library(data.table) # enhanced version of data.frames. FAST.
 library(rgdal) # bindings to GDAL (must have gdal installed).
 library(ggplot2) # a plotting system in R (much NICER than base plotting)
-library(gdalUtils) # 
+library(gdalUtils) # # wrappers for GDAL utilities
+library(GGally) # extension of ggplot
 ######################################
 
 # Time to stop hard coding everything in the body of the code. 
@@ -45,24 +46,24 @@ cc <- raster(canopy.file)
 imp <- raster(imp.file)
 # Inspect the new datasets (histograms, plots, quick maps)
 cc
-# lc
 imp
 # quick plot - we'll work on styling later!
 plot(cc) 
-# plot(lc)
-plot(imp)
-
 # let's assign an NA value and try plotting again (we know the NA value from knowing the data, looking in qgis, gdalinfo etc.)
 # When the layer was created, NAvalue wasn't defined for some reason, but we can define it.
 NAvalue(cc) <- 255
 # plot again
 plot(cc)
 
+# Look at impervious surfaces:
+plot(imp)
+
+# The nodata value is 127. Assign NA value to imp and plot again:
+
+
 # How about our points on top? Quick and dirty = not pretty
 system.time(plot(birds.int, col="blue", pch=19, cex=0.7, add=T))
 
-NAvalue(imp) <- 127
-plot(imp)
 
 # Projection check:
 projection(cc)
@@ -97,7 +98,8 @@ plot(barn)
 system.time(cc.mask <- mask(cc.crop, barn))
 plot(cc.mask)
 
-# Extract raster values to points - want to know the %canopy cover and %impervious surface
+# Extract raster values to points - think of this as linking field data with image data. 
+# We want to know the %canopy cover and %impervious surface
 # at each point. Let's go back to the bigger data set and work in parallel!
 # 'Extract' is one of several commands that automatically runs in parallel if you start a
 # cluster.
@@ -173,6 +175,8 @@ system.time(cc.reclass <- reclassify(cc, rcl=c(0,30,1, 30,60,2, 60,100,3)))
 birds.int$canopy_class <- extract(cc.reclass, birds.int)
 # endCluster()
 
+# What are the first 3 values in our new canopy class field?
+
 # Pause to write birds.int (with our extracted rasters) and county.ne to rdata file.
 save(birds.int, county.ne, file="birds_counties_extract.RDATA")
 
@@ -186,6 +190,7 @@ ggplot(data=birds.int@data, aes(x=canopy_class, fill=COMMON.NAME)) + geom_bar(wi
 ggpairs(birds.int@data[, c("canopy_cover", "imp_surface", "canopy_class")])
 # To get the actual correlation numbers:
 cors <- cor(birds.int@data[, c("canopy_cover", "imp_surface", "canopy_class")])
+cors
 # How hard it is to do a simple model?
 mod <- lm(imp_surface ~ canopy_cover, data=birds.int@data)
 summary(mod)
@@ -205,6 +210,7 @@ ls
 plot(ls)
 levelplot(ls)
 levelplot(ls[[1]])
+
 # Hmm, they both plot the bands individually. Can we look at them together?
 plotRGB(ls, 3,2,1, scale=65535) 
 

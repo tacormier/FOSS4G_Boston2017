@@ -17,6 +17,7 @@ library(dplyr) # A fast set of tools for working with data frame like objects
 # library(plotly) # a graphing package for interactive plots
 library(tmap) # layer-based approach to building thematic maps
 library(gganimate) # create animated ggplot2 plots
+library(lubridate) # package that facilitates working with dates and times
 ######################################
 wd <- "/home/user/R_workshop/data/"
 setwd(wd)
@@ -38,7 +39,6 @@ writeOGR(birds.sp, "eBird/test_geojson", layer="birds", driver="GeoJSON")
 # 3. Visualize
 plot(birds.sp)
 # That's kind of ugly, but we can see our geography issues have been resolved! How about this?
-library(tmap) 
 # qtm = quick thematic map = parallel structure to ggplots 'qplot'
 qtm(shp = birds.sp, symbols.col="COMMON.NAME")
 # Nicer - but points are huge - let's adjust
@@ -51,7 +51,8 @@ m
 
 # a map by date?
 p <- ggplot(birds.sp@data, aes(x=LONGITUDE, y=LATITUDE)) + geom_point()
-p
+p # Will get a weird warning here because we aren't using the most updated version of ggplot.
+
 # add some color and frame by year
 p <- ggplot(birds.sp@data, aes(x=LONGITUDE, y=LATITUDE, color=COMMON.NAME, frame=year)) + geom_point()
 p
@@ -265,13 +266,14 @@ qtm(county.ne, fill = "count", fill.palette="Purples", fill.style="fixed",fill.b
 
 # Another common GIS function = dissolve. Let's dissolve counties to states
 states <- aggregate(county.ne, by="NAME_1")
-qtm(states) # complex boundaries, so will take a moment to plot.
+qtm(states) # complex boundaries, so could take a moment to plot.
 
       
 # 11. Birding hotspots?
 # Let's try ggmap
 library(ggmap) # Spatial visualization with ggplot2
 m <- qmap(location="new england", zoom=6) # set location and background
+m
 m + geom_point(data=birds.int@data, aes(x=LONGITUDE, y=LATITUDE)) # Well, that's something.
 # Let's try to get the density (2-D kernel density estimation!
 m + stat_density2d(data=birds.int@data, aes(x = LONGITUDE, y = LATITUDE))
