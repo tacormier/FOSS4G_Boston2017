@@ -2,7 +2,7 @@
 ### Tina A. Cormier
 <br>
 
-## Pre-workshop Instructions: :heavy_check_mark:
+## :heavy_check_mark: Pre-workshop Instructions:
 <br>
 To cut down on setup during our short time together, please do the following **prior to the workshop**:  
 
