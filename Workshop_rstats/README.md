@@ -20,7 +20,7 @@ To cut down on setup during our short time together, please do the following **p
 ###### VB setup
 1. Start the VirtualBox application and click on the New button to create a new VM, and then Next.
 2. Enter a name such as OSGeo-Live, and choose Linux as the “Operating system”, and Ubuntu as the “Version”.
-3. In the next screen set the memory to *at least* 1024 MB (or more if your host computer has more than 4GB). On my 16GB machine, I chose 8192 MB. More than that hosed my computer.
+3. In the next screen set the memory to *at least* 1024 MB (or more if your host computer has more than 4GB). On my 16GB machine, I chose 8192 MB. More than that froze my computer.
 4. Continue to the next screen and choose “Use existing hard disk” . Now click on the button (a folder icon) to browse to where you saved the OSGeo-Live vmdk-file. Select this file, press Next and Create.
 5. Once the VM is created, click on the Settings button. In the “General” section, go to the Advanced tab, and click to select “bidirectional" for shared clipboard (this doesn't really work but it makes me feel better to choose it).
 6. Go to the “Display” section and increase video memory to 32 or 64 MB.
@@ -34,11 +34,11 @@ To cut down on setup during our short time together, please do the following **p
 
   ``` sudo usermod -a -G vboxsf user ``` 
 
-11. Above, we defined a Shared Folder path on the host system and named it “R_workshop” in the VM Settings. The shared folder will appear in the file system under /media/sf_GIS/. To mount this folder in the user’s home directory, enter the following two commands into terminal (make sure you are in `/home/user/` (type `pwd`) first: 
+11. Above, we defined a Shared Folder path on the host system and named it “R_workshop” in the VM Settings. The shared folder will appear in the file system under /media/sf_R_workshop/. To mount this folder in the user’s home directory, enter the following two commands into terminal (make sure you are in `/home/user/` (type `pwd`) first: 
 
   ```mkdir R_workshop``` 
 
-  ```sudo mount -t vboxsf -o uid=user,rw GIS /home/user/R_workshop``` 
+  ```sudo mount -t vboxsf -o uid=user,rw R_workshop /home/user/R_workshop``` 
   
   *Note* that the mount command will need to be run each time you log in to the VM. 
 
