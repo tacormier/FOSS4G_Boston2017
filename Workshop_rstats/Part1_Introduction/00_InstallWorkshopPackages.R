@@ -12,6 +12,7 @@ install.packages("maptools") # provides various mapping functions, BUT I don't r
 install.packages("devtools") # makes creating R packages easier (also allows us to install packages from other locations)
 install_github("hadley/ggplot2@v2.2.0") # data visualization package that breaks graphics into component parts (e.g., plot, layers, scales).
 install.packages("GGalley") # extension of ggplot
+devtools::install_github("dgrtwo/gganimate") # create animated ggplot2 plots
 # install.package("plotly") # a graphing package for interactive plots
 install.packages("data.table") # enhanced version of data.frames. FAST
 install.packages("lubridate") # package that facilitates working with dates and times
