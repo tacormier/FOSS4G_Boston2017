@@ -2,7 +2,7 @@
 ### Tina A. Cormier
 <br>
 
-## Pre-workshop Instructions:
+## Pre-workshop Instructions: :heavy_check_mark:
 <br>
 To cut down on setup during our short time together, please do the following **prior to the workshop**:  
 
@@ -14,7 +14,7 @@ To cut down on setup during our short time together, please do the following **p
  2. Download the [workshop data](https://drive.google.com/open?id=0B4DQJSUPD0brVktPSXZFcmx2MEU) into a folder on your machine called `R_workshop`. You should now have a directory structure like `/[your_path]/R_workshop/data/`. You should also have a directory structure like `/[your_path]/R_workshop/code/` that contains the code in this repository.
 <br>
 
-## It's Workshop Day:
+## It's Workshop Day: :clap:
 
 ##### Getting Started
 ###### VB setup
