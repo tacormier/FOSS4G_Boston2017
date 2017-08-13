@@ -18,18 +18,18 @@ library(gdalUtils) #
 # What is our current working directory?
 getwd()
 # Let's set a new one!
-wd <- "/Users/tcormier/Documents/misc_projects/foss4g2017_workshop/data/"
-setwd(wd) # I don't typically do this, and I'll explain why! But it's easier for this example, and you should know about it!
+wd <- "/home/user/R_workshop/data/"
+setwd(wd)
 
 # User variables
 # rdata file containing some variables from our previous session
-rdata <- "birds_counties.RDATA"
+rdata <- "eBird/birds_counties.RDATA"
 # canopy cover img
-canopy.file <- "landcover/nlcd2011_usfs_conus_canopy_cover.tif"
+canopy.file <- "images/lc/nlcd2011_usfs_conus_canopy_cover.tif"
 # impervious surface img
-imp.file <- "landcover/nlcd_2011_impervious_2011_edition_2014_10_10.tif"
+imp.file <- "images/lc/nlcd_2011_impervious_2011_edition_2014_10_10.tif"
 # landsat directory - just one tile
-ls.dir <- "/Users/tcormier/Documents/misc_projects/foss4g2017_workshop/data/LC08_L1TP_013030_20160704_20170222_01_T1/"
+ls.dir <- "images/ls/"
 
 # Goal: We'd like to understand a little bit about where we tend to find birds of certain species.
 
@@ -87,20 +87,24 @@ projection(county.ne)
 barn <- county.ne[county.ne$NAME_1 == "Massachusetts" & county.ne$NAME_2 == "Barnstable",]
 system.time(cc.crop <- crop(cc, barn)) # you can use system.time() to time a process.
 plot(barn)
-# the masking can be done in parallel
-beginCluster()
-system.time(cc.mask <- clusterR(cc.crop, mask, args=list(mask=barn)))
-endCluster()
+# the masking can be done in parallel - this won't work on the VM if you have only 
+# allocated one core
+# beginCluster()
+# system.time(cc.mask <- clusterR(cc.crop, mask, args=list(mask=barn)))
+# endCluster()
+
+# Same code but single core processing - for work in OSGeo-Live VM
+system.time(cc.mask <- mask(cc.crop, barn))
 plot(cc.mask)
 
-
-# ALSO SHOW HOW TO BUFFER THE POINTS AND EXTRACT THE MEAN VALUE
 # Extract raster values to points - want to know the %canopy cover and %impervious surface
 # at each point. Let's go back to the bigger data set and work in parallel!
-beginCluster()
+# 'Extract' is one of several commands that automatically runs in parallel if you start a
+# cluster.
+# beginCluster() # cluster won't work on OSGeo-Live VM
 system.time(birds.int$canopy_cover <- extract(cc, birds.int))
 system.time(birds.int$imp_surface <- extract(imp, birds.int))
-endCluster()
+# endCluster()
 
 # Now let's see what we got
 head(birds.int)
@@ -125,10 +129,11 @@ p
 
 # What if we want a different plot per species?
 p + facet_wrap(~COMMON.NAME) 
+# or = grid of x by y - state by species
+p + facet_grid(STATE_PROVINCE ~ COMMON.NAME)
 # or species on same plot, but by state?
 p + facet_wrap(~STATE_PROVINCE, ncol=3)
-# or = grid of x by y
-p + facet_grid(STATE_PROVINCE ~ COMMON.NAME)
+
 
 # Ok, let's say we like this last one and want to save it. There are two ways:
 # 1. ggsave will attempt to save your last plot (unless you define a different one) with sensible defaults.
@@ -156,34 +161,41 @@ plot(cc.p)
 # Hmm, maybe the canopy cover might tell a better story if we classified the image
 # from a continous layer into a thematic layer? You can easily classify images in R. Of course,
 # we could just relcassify the values we extracted to our bird points, but that's no fun!
-beginCluster()
+# beginCluster() # Cluster code here for later when you're on a multi-core machine.
 # note, if this was a more complex reclassification, we could create a 3-column matrix
 # to pass to the rcl argument. This will take a few minutes! c(0,2,1,  2,5,2, 4,10,3)
-system.time(cc.reclass <- clusterR(cc, reclassify, args=list(rcl=c(0,30,1, 30,60,2, 60,100,3))))
-plot(cc.reclass)
+# system.time(cc.reclass <- clusterR(cc, reclassify, args=list(rcl=c(0,30,1, 30,60,2, 60,100,3))))
+# plot(cc.reclass)
+# Same code single core:
+system.time(cc.reclass <- reclassify(cc, rcl=c(0,30,1, 30,60,2, 60,100,3)))
 
 # Extract values to points again:
 birds.int$canopy_class <- extract(cc.reclass, birds.int)
-endCluster()
+# endCluster()
 
 # Pause to write birds.int (with our extracted rasters) and county.ne to rdata file.
-save(birds.int, county.ne, file="/Users/tcormier/Documents/misc_projects/foss4g2017_workshop/data/birds_counties_extract.RDATA")
+save(birds.int, county.ne, file="birds_counties_extract.RDATA")
 
 # Bar plot!
 ggplot(data=birds.int@data, aes(x=canopy_class, fill=COMMON.NAME)) + geom_bar(width=0.75)
 # or
 ggplot(data=birds.int@data, aes(x=canopy_class, fill=COMMON.NAME)) + geom_bar(width=0.75, position = 'dodge')
 
-
+# One more cool visual we can do straight from R after doing some spatial processing.
+# This is helpful for you modelers - especially when you have lots of variables!
+ggpairs(birds.int@data[, c("canopy_cover", "imp_surface", "canopy_class")])
+# To get the actual correlation numbers:
+cors <- cor(birds.int@data[, c("canopy_cover", "imp_surface", "canopy_class")])
+# How hard it is to do a simple model?
+mod <- lm(imp_surface ~ canopy_cover, data=birds.int@data)
+summary(mod)
+plot(mod)
 
 ######### SAT IMAGE ###########
 # Now let's work with some satellite imagery.
 # Let's list the TIF files within the ls.dir 
 ls.files <- list.files(ls.dir, "*.TIF$", full.names = T)
-ls.files
-# We only want bands 6, 5, 4 (SWIR, NIR, red), which corresponds to files 8,7,6 in our list
-ls.files <- ls.files[c(8,7,6)]
-ls.files
+ls.files # We have bands 4, 5, 6 from a landsat 8 image from July 4, 2016 (red, NIR, SWIR)
 
 # Even though they were delivered to us as individual bands, we can open them as a stack.
 ls <- stack(ls.files) # You may get warnings here - ignore.
@@ -192,12 +204,17 @@ ls
 # Let's look:
 plot(ls)
 levelplot(ls)
+levelplot(ls[[1]])
 # Hmm, they both plot the bands individually. Can we look at them together?
-plotRGB(ls, 1, 2, 3, scale=65535) 
+plotRGB(ls, 3,2,1, scale=65535) 
 
-# Let's calculate our own band: NDVI = (NIR - R)/(NIR + R)
 # You can do math on rasters just like other objects in R.
-system.time(ndvi <- (ls[[2]] - ls[[3]])/(ls[[2]] + ls[[3]]))
+# Look at the min/max stats on band 1:
+ls[[1]]
+ls * 10
+
+# Let's calculate our own band: NDVI = (NIR - R)/(NIR + R) = greenness 
+system.time(ndvi <- (ls[[2]] - ls[[1]])/(ls[[2]] + ls[[1]]))
 ndvi
 plot(ndvi)
 
@@ -207,5 +224,8 @@ ndvi.agg <- aggregate(ndvi, 3, mean)
 ndvi.agg
 plot(ndvi.agg)
 
-# Discuss resample as a method for snapping one raster to another.
-# Discuss processing large rasters 
+# Discuss resample as a method for snapping one raster to another. - too slow on our VM
+
+
+
+
